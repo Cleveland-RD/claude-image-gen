@@ -1,0 +1,52 @@
+{
+  "manifest_version": "0.3",
+  "name": "image-gen",
+  "display_name": "Image Gen",
+  "version": "0.1.0",
+  "description": "Generate and edit images via OpenAI gpt-image-2 or Google Gemini.",
+  "long_description": "Local stdio MCP server that calls OpenAI gpt-image-2 (default) or Google Gemini (Nano Banana) image-preview models. Saves PNGs to ~/Pictures/image-gen/ and returns inline JPEG thumbnails. Bring your own OpenAI and/or Gemini API key. This single-platform build targets the platform it was built on; cross-platform builds come in the publish step.",
+  "author": {
+    "name": "Cleveland R&D",
+    "url": "https://github.com/Cleveland-RD"
+  },
+  "license": "MIT",
+  "keywords": ["image", "image-generation", "openai", "gpt-image-2", "gemini", "nano-banana"],
+  "server": {
+    "type": "node",
+    "entry_point": "server/wrap.cjs",
+    "mcp_config": {
+      "command": "/usr/bin/env",
+      "args": ["node", "${__dirname}/server/wrap.cjs"],
+      "env": {
+        "OPENAI_API_KEY": "${user_config.openai_api_key}",
+        "GEMINI_API_KEY": "${user_config.gemini_api_key}"
+      }
+    }
+  },
+  "user_config": {
+    "openai_api_key": {
+      "type": "string",
+      "title": "OpenAI API Key",
+      "description": "From platform.openai.com. Required for the GPT model (gpt-image-2). Leave blank if you only use Gemini.",
+      "sensitive": true,
+      "required": false
+    },
+    "gemini_api_key": {
+      "type": "string",
+      "title": "Gemini API Key",
+      "description": "From aistudio.google.com. Required for any Gemini model. Leave blank if you only use GPT.",
+      "sensitive": true,
+      "required": false
+    }
+  },
+  "tools": [
+    { "name": "generate_image", "description": "Generate or edit an image via OpenAI gpt-image-2 or Google Gemini." },
+    { "name": "check_image_job", "description": "Poll a previously-started image generation job." }
+  ],
+  "compatibility": {
+    "platforms": ["darwin"],
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  }
+}

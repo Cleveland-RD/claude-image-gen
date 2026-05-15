@@ -1,0 +1,16 @@
+{
+  "name": "claude-image-gen",
+  "description": "Single-plugin marketplace for image-gen: the image-gen skill, /image-gpt and /image-gemini slash commands. Pairs with the image-gen MCP (shipped separately as a .mcpb / claude mcp add).",
+  "owner": {
+    "name": "Cleveland R&D",
+    "url": "https://github.com/Cleveland-RD"
+  },
+  "plugins": [
+    {
+      "name": "image-gen",
+      "source": "./plugin",
+      "description": "Generate and edit images via OpenAI gpt-image-2 or Google Gemini. /image-gpt, /image-gemini, and an image-gen skill.",
+      "author": { "name": "Cleveland R&D" }
+    }
+  ]
+}

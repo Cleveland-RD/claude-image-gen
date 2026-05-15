@@ -1,0 +1,11 @@
+{
+  "name": "image-gen",
+  "version": "0.1.0",
+  "description": "Generate and edit images via OpenAI gpt-image-2 or Google Gemini (Nano Banana). Provides /image-gpt and /image-gemini slash commands plus an image-gen skill. Bring your own OpenAI and/or Gemini API key.",
+  "author": {
+    "name": "Cleveland R&D",
+    "url": "https://github.com/Cleveland-RD"
+  },
+  "license": "MIT",
+  "keywords": ["image", "image-generation", "openai", "gpt-image-2", "gemini", "nano-banana"]
+}

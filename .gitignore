@@ -1,0 +1,25 @@
+# Node
+node_modules/
+*.log
+.npm
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Dev-tree build outputs (mcp/dist/index.js is the canonical bundle; staged into
+# mcpb/server/ by scripts/build-mcpb.sh and into the .mcpb archive)
+mcp/dist/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# .mcpb build outputs
+mcpb/server/
+mcpb/node_modules/
+dist/

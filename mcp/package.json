@@ -1,0 +1,25 @@
+{
+  "name": "@claude-image-gen/mcp",
+  "version": "0.1.0",
+  "description": "Stdio MCP server for OpenAI gpt-image-2 and Google Gemini image generation.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=esm --external:sharp --outfile=dist/index.js --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url); process.stderr.write('[image-gen] boot node=' + process.version + '\\n');\"",
+    "dev": "tsx watch src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@google/genai": "^2.2.0",
+    "openai": "^4.70.0",
+    "sharp": "^0.33.5",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.24.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

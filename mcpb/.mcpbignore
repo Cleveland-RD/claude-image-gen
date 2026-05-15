@@ -1,0 +1,5 @@
+# Source-of-truth for the CJS wrapper at the mcpb/ root. The build script
+# (scripts/build-mcpb.sh) copies it to server/wrap.cjs at pack time; do not
+# ship the root copy too. The leading slash anchors the pattern to the
+# mcpb/ root so server/wrap.cjs is still included.
+/wrap.cjs
