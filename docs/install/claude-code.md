@@ -4,7 +4,7 @@ This guide installs **image-gen** in Claude Code. As with Claude Desktop, the MC
 
 Unlike Desktop, Claude Code spawns the MCP using **your own** `node` binary, not a bundled Electron Helper. That means no library-validation gotchas, full inline-image rendering when the client supports it, and the same install works across nvm / Homebrew / system Node.
 
-> **Audience:** end users on macOS. Linux/Windows builds are planned; until then, this guide assumes darwin (arm64 or x64).
+> **Audience:** end users on macOS, Linux, or Windows. macOS and Windows install the published `.mcpb` (auto-picked below). Linux users build from source — the `.mcpb` is a packaging convenience for Claude Desktop (which has no Linux build), but Claude Code on Linux just needs `node mcp/dist/index.js`. Skip to the [Linux / contributor mode appendix](#appendix-contributor--local-dev-mode) for those steps.
 
 ---
 
@@ -35,9 +35,17 @@ This step gets you the `generate_image` and `check_image_job` tools. Required fo
 The `.mcpb` Desktop Extension is just a zip. We extract its `server/` and `node_modules/` to a stable local path that Claude Code can spawn from.
 
 ```bash
+# Pick the .mcpb matching your OS + CPU
+# Linux users: skip this step — go to the appendix and build from source instead.
+case "$(uname -s)-$(uname -m)" in
+  Darwin-arm64)   MCPB_FILE=image-gen-darwin-arm64.mcpb ;;
+  Darwin-x86_64)  MCPB_FILE=image-gen-darwin-x64.mcpb ;;
+  *) echo "No published .mcpb for $(uname -s)-$(uname -m). Use the build-from-source appendix instead." >&2; exit 1 ;;
+esac
+
 # Download the .mcpb release asset
 curl -L -o /tmp/image-gen.mcpb \
-  https://github.com/Cleveland-RD/claude-image-gen/releases/latest/download/image-gen.mcpb
+  "https://github.com/Cleveland-RD/claude-image-gen/releases/latest/download/$MCPB_FILE"
 
 # Extract into ~/.image-gen-mcp (creates the dir on first run)
 mkdir -p ~/.image-gen-mcp
@@ -47,6 +55,25 @@ unzip -oq /tmp/image-gen.mcpb -d ~/.image-gen-mcp
 ls ~/.image-gen-mcp/server/index.js && \
   echo "MCP bundle ready at ~/.image-gen-mcp/server/index.js"
 ```
+
+<details>
+<summary>Windows (PowerShell)</summary>
+
+```powershell
+$Url = "https://github.com/Cleveland-RD/claude-image-gen/releases/latest/download/image-gen-win32-x64.mcpb"
+$Mcpb = "$env:TEMP\image-gen.mcpb"
+$Dest = "$env:USERPROFILE\.image-gen-mcp"
+
+Invoke-WebRequest -Uri $Url -OutFile $Mcpb
+New-Item -ItemType Directory -Force -Path $Dest | Out-Null
+Expand-Archive -Path $Mcpb -DestinationPath $Dest -Force
+
+Test-Path "$Dest\server\index.js"
+```
+
+Then in the next step, use `node "$env:USERPROFILE\.image-gen-mcp\server\index.js"` as the spawn command (instead of the `$HOME/.image-gen-mcp/...` form below).
+
+</details>
 
 The bundle includes sharp's native prebuild under `~/.image-gen-mcp/node_modules/`. Node's module resolution walks up from `server/` to find it, so don't move `server/` independently of `node_modules/`.
 
@@ -237,7 +264,12 @@ If you used `Option B — Local zip download` for the plugin, also `rm -rf ~/.im
 
 ## Appendix: Contributor / local-dev mode
 
-For people working on the repo itself (not just installing the released artifacts). Skips the release-download step in favor of building from source.
+For two audiences:
+
+1. **Linux users.** No `.mcpb` is published for Linux (Claude Desktop has no Linux build, so we don't ship one). Build from source — the steps below produce a working `mcp/dist/index.js` that Claude Code on Linux can spawn directly.
+2. **Contributors** working on the repo itself.
+
+Both follow the same flow — clone, build, register from the local checkout.
 
 ```bash
 # Clone and build

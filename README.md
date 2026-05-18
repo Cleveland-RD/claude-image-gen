@@ -14,9 +14,11 @@ The plugin and the MCP are independent artifacts. Most people install just the M
 
 | Artifact | Surface | What it gives you |
 |---|---|---|
-| `image-gen.mcpb` | Claude Desktop (Install Extension) | MCP tools (`generate_image`, `check_image_job`) |
+| `image-gen-<os>-<arch>.mcpb` (per-platform — see install guide) | Claude Desktop (Install Extension) | MCP tools (`generate_image`, `check_image_job`) |
 | `image-gen-plugin.zip` | Claude Desktop (upload plugin) or Claude Code (`--plugin-dir` / marketplace) | `image-gen` skill + `/image-gpt` + `/image-gemini` |
 | `mcp/dist/index.js` | Manual `claude mcp add` (Claude Code) or `claude_desktop_config.json` (Desktop) | Same MCP, for advanced users who want full control |
+
+Per-platform `.mcpb` builds: `darwin-arm64`, `darwin-x64`, `win32-x64` (Claude Desktop's supported platforms). Linux users install via Claude Code's build-from-source path — see [docs/install/claude-code.md](docs/install/claude-code.md). The plugin zip is cross-platform (text only).
 
 ### Setup guides
 

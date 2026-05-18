@@ -1,0 +1,113 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v0.1.1). Must already exist.'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-mcpb:
+    name: Build .mcpb (${{ matrix.target_os }}-${{ matrix.target_arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            target_os: darwin
+            target_arch: arm64
+          - runner: macos-15-intel
+            target_os: darwin
+            target_arch: x64
+          - runner: windows-latest
+            target_os: win32
+            target_arch: x64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install mcpb CLI
+        run: npm install -g @anthropic-ai/mcpb@^2
+
+      - name: Build .mcpb
+        shell: bash
+        run: ./scripts/build-mcpb.sh ${{ matrix.target_os }} ${{ matrix.target_arch }}
+
+      - name: Smoke-test JSON-RPC boot (initialize + tools/list)
+        shell: bash
+        run: ./scripts/smoke-test.sh dist/image-gen-${{ matrix.target_os }}-${{ matrix.target_arch }}.mcpb
+
+      # Every matrix entry runs on its target's native OS+arch, so the dlopen
+      # check actually verifies the prebuild against the real runtime.
+      - name: Verify sharp native prebuild loads
+        shell: bash
+        run: node -e "const s=require('./dist/build-${{ matrix.target_os }}-${{ matrix.target_arch }}/node_modules/sharp'); console.log('sharp version:', s.versions.sharp, 'libvips:', s.versions.vips);"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-gen-${{ matrix.target_os }}-${{ matrix.target_arch }}
+          path: dist/image-gen-${{ matrix.target_os }}-${{ matrix.target_arch }}.mcpb
+          if-no-files-found: error
+
+  build-plugin:
+    name: Build plugin zip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Zip plugin
+        run: |
+          mkdir -p dist
+          (cd plugin && zip -r ../dist/image-gen-plugin.zip . -x '*.DS_Store')
+          unzip -l dist/image-gen-plugin.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-gen-plugin
+          path: dist/image-gen-plugin.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: [build-mcpb, build-plugin]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Show artifacts
+        run: ls -lh artifacts
+
+      - name: Resolve tag
+        id: tag
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload assets to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.name }}
+          name: ${{ steps.tag.outputs.name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/image-gen-darwin-arm64.mcpb
+            artifacts/image-gen-darwin-x64.mcpb
+            artifacts/image-gen-win32-x64.mcpb
+            artifacts/image-gen-plugin.zip
